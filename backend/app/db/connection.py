@@ -1,6 +1,7 @@
 import logging
 
 import psycopg
+from psycopg.conninfo import make_conninfo
 from psycopg_pool import ConnectionPool, PoolTimeout
 
 from app.config import settings
@@ -15,10 +16,16 @@ def build_connection_string() -> str:
     """
     Build a PostgreSQL connection string safely.
 
-    Settings.database_url uses make_conninfo, which handles special characters in passwords.
+    make_conninfo handles special characters in passwords.
     """
 
-    return settings.database_url
+    return make_conninfo(
+        host=settings.POSTGRES_HOST,
+        port=settings.POSTGRES_PORT,
+        dbname=settings.POSTGRES_DB,
+        user=settings.POSTGRES_USER,
+        password=settings.POSTGRES_PASSWORD,
+    )
 
 
 def open_pool() -> None:
