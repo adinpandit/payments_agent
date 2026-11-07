@@ -1,30 +1,8 @@
 
-import pytest
 from fastapi.testclient import TestClient
 
-import app.main as main_module
 from app.main import app
 from app.api.routes import health
-
-
-@pytest.fixture(autouse=True)
-def disable_database_lifecycle(monkeypatch):
-    """
-    Prevent tests from opening or closing a real PostgreSQL
-    connection pool during FastAPI startup and shutdown.
-    """
-
-    monkeypatch.setattr(
-        main_module,
-        "open_pool",
-        lambda: None,
-    )
-
-    monkeypatch.setattr(
-        main_module,
-        "close_pool",
-        lambda: None,
-    )
 
 
 def test_root_endpoint():
@@ -44,6 +22,10 @@ def test_health_endpoint():
 
 
 def test_database_health_connected(monkeypatch):
+    """
+    Test successful database health check.
+    """
+
     monkeypatch.setattr(
         health,
         "check_database_connection",
@@ -59,6 +41,10 @@ def test_database_health_connected(monkeypatch):
 
 
 def test_database_health_disconnected(monkeypatch):
+    """
+    Test database health check when PostgreSQL is unavailable.
+    """
+
     monkeypatch.setattr(
         health,
         "check_database_connection",

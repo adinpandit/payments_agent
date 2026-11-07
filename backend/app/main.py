@@ -1,6 +1,11 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.api.routes import health
+from app.api.routes import (
+    health,
+    organization,
+    customers,
+    ledger,
+)
 from app.db.connection import open_pool, close_pool
 
 @asynccontextmanager
@@ -25,3 +30,6 @@ def root():
     }
 
 app.include_router(health.router)
+app.include_router(organization.router)
+app.include_router(customers.router)
+app.include_router(ledger.router)
