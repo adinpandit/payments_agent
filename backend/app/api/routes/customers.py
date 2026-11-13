@@ -1,10 +1,11 @@
 from uuid import UUID
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Query
 from app.db.queries import customers, organizations
 from app.schemas.customer import(
     CustomerCreate,
-    customerResponse,
+    CustomerResponse,
 )
+from app.schemas.common import PaginatedResponse
 
 router = APIRouter(
     prefix = "/customers",
@@ -13,10 +14,16 @@ router = APIRouter(
 
 @router.post(
     "/",
-    response_model = customerResponse,
+    response_model = CustomerResponse,
     status_code=201,
+    summary="Create a customer",
+    description="Create a customer under the specified organization.",
+    responses={
+        404: {"description": "Organization not found"},
+        422: {"description": "Invalid customer input"},
+    },
 )
-def create_csutomer(
+def create_customer(
     data:CustomerCreate,
     x_organization_id:UUID = Header(...),
 ):
@@ -42,18 +49,28 @@ def create_csutomer(
 
 @router.get(
     "/",
-    response_model = list[customerResponse]
+    response_model = PaginatedResponse[CustomerResponse],
+    summary="List customers",
+    description="Retrieve a paginated list of customers belonging to an organization.",
 )
 def list_customers(
-    x_organization_id: UUID = Header(...),
+    x_organization_id: UUID = Header(...), 
+    limit: int = Query(default=20, ge=1, le=100), 
+    offset: int = Query(default=0, ge=0),
 ):
     return customers.get_customers(
-        organization_id = x_organization_id
+        organization_id = x_organization_id,
+        limit=limit,
+        offset=offset,
     )
 
 @router.get(
     "/{customer_id}",
-    response_model=customerResponse
+    response_model=CustomerResponse,
+    summary="Get a customer",
+    responses={
+        404: {"description": "Customer not found"},
+    },
 )
 def get_customer(
     customer_id:UUID,

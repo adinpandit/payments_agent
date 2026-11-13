@@ -3,5 +3,5 @@ uvicorn[standard]
 psycopg[binary,pool]
 pydantic-settings
 pytest
-httpx
+httpx2>=2.0.0
 email-validator

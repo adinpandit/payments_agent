@@ -7,19 +7,36 @@ from app.api.routes import (
     ledger,
 )
 from app.db.connection import open_pool, close_pool
+from app.core.exceptions import register_exception_handlers
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     open_pool()
-    yield
-    close_pool()
+    try:
+        yield
+    finally:
+        close_pool()
 
 app = FastAPI(
     title="Yaadi API",
-    description="Agentic AI-powered receivables management platform",
-    version="0.1.0",
+    description=
+    """
+    Agentic AI-powered receivables management platform.
+
+    Current capabilities:
+    - Organization management
+    - Customer management
+    - Ledger entries
+    - Customer balance calculation
+    - Paginated customer and ledger APIs
+    """,
+    version="0.2.0",
     lifespan=lifespan,
 )
+
+register_exception_handlers(app)
 
 @app.get("/")
 def root():

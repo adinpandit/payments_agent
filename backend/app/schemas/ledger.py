@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, model_validator, Field
+from pydantic import BaseModel, ConfigDict, model_validator, Field, field_validator
 
 EntryType = Literal[
     "sale",
@@ -17,8 +17,18 @@ class LedgerEntryCreate(BaseModel):
     entry_type:EntryType
     direction:EntryDirection
     amount:Decimal = Field(gt=0, max_digits=12, decimal_places=2,)
-    description:str|None=Field(default=None, max_length=500)
+    description:str|None=Field(default=None, max_length=500,)
 
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+
+        return value or None
+    
     @model_validator(mode="after")
     def validate_direction(self):
         if(
@@ -37,7 +47,7 @@ class LedgerEntryCreate(BaseModel):
 
         return self
 
-class LedgerEnryResponse(BaseModel):
+class LedgerEntryResponse(BaseModel):
     id:uuid.UUID
     customer_id:uuid.UUID
     entry_type:EntryType

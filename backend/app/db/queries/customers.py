@@ -17,7 +17,7 @@ def create_customer(
                     name,
                     phone,
                     email,
-                    address,
+                    address
                 )
                 VALUES (%s,%s,%s,%s,%s)
                 RETURNING
@@ -40,9 +40,20 @@ def create_customer(
 
             return cur.fetchone()
 
-def get_customers(organization_id)->list[dict]:
+def get_customers(organization_id, limit:int=20, offset:int=0,)->list[dict]:
     with get_pool().connection() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*) AS total
+                FROM customers
+                WHERE organization_id = %s
+                """,
+                (organization_id,),
+            )
+
+            total = cur.fetchone()["total"]
+
             cur.execute(
                 """
                 SELECT 
@@ -55,12 +66,24 @@ def get_customers(organization_id)->list[dict]:
                     created_at
                 FROM customers 
                 WHERE organization_id=%s
-                ORDER BY name ASC
+                ORDER BY name ASC, id ASC
+                LIMIT %s
+                OFFSET %s
                 """,
-                (organization_id,),
+                (organization_id,
+                 limit,
+                 offset,
+                 ),
             )
 
-            return cur.fetchall()
+            items = cur.fetchall()
+
+            return{
+               "items": items,
+                "total": total,
+                "limit": limit,
+                "offset": offset, 
+            }
 
 def get_customer(organization_id , customer_id)->dict | None:
     with get_pool().connection() as conn:
